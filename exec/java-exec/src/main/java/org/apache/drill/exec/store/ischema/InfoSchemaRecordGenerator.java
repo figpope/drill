@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,6 +59,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
   protected InfoSchemaFilter filter;
 
   protected OptionManager optionManager;
+
   public InfoSchemaRecordGenerator(OptionManager optionManager) {
     this.optionManager = optionManager;
   }
@@ -146,7 +147,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
       // If the filter evaluates to false then we don't need to visit the schema.
       // For other two results (TRUE, INCONCLUSIVE) continue to visit the schema.
       return filter.evaluate(recordValues) != Result.FALSE;
-    } catch(ClassCastException e) {
+    } catch (ClassCastException e) {
       // ignore and return true as this is not a Drill schema
     }
     return true;
@@ -155,6 +156,10 @@ public abstract class InfoSchemaRecordGenerator<S> {
   protected boolean shouldVisitTable(String schemaName, String tableName, TableType tableType) {
     if (filter == null) {
       return true;
+    }
+
+    if (tableType == null) {
+      return false;
     }
 
     final Map<String, String> recordValues =
@@ -171,6 +176,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
   }
 
   protected boolean shouldVisitColumn(String schemaName, String tableName, String columnName) {
+    // https://issues.apache.org/jira/browse/DRILL-5295
     if (filter == null) {
       return true;
     }
@@ -204,7 +210,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
   private void scanSchema(String schemaPath, SchemaPlus schema) {
 
     // Recursively scan any subschema.
-    for (String name: schema.getSubSchemaNames()) {
+    for (String name : schema.getSubSchemaNames()) {
       scanSchema(schemaPath +
           (schemaPath == "" ? "" : ".") + // If we have an empty schema path, then don't insert a leading dot.
           name, schema.getSubSchema(name));
@@ -224,15 +230,15 @@ public abstract class InfoSchemaRecordGenerator<S> {
   public void visitTables(String schemaPath, SchemaPlus schema) {
     final AbstractSchema drillSchema = schema.unwrap(AbstractSchema.class);
     final List<String> tableNames = Lists.newArrayList(schema.getTableNames());
-    for(Pair<String, ? extends Table> tableNameToTable : drillSchema.getTablesByNames(tableNames)) {
+    for (Pair<String, ? extends Table> tableNameToTable : drillSchema.getTablesByNames(tableNames)) {
       final String tableName = tableNameToTable.getKey();
       final Table table = tableNameToTable.getValue();
       final TableType tableType = table.getJdbcTableType();
       // Visit the table, and if requested ...
-      if(shouldVisitTable(schemaPath, tableName, tableType) && visitTable(schemaPath, tableName, table)) {
+      if (shouldVisitTable(schemaPath, tableName, tableType) && visitTable(schemaPath, tableName, table)) {
         // ... do for each of the table's fields.
         final RelDataType tableRow = table.getRowType(new JavaTypeFactoryImpl());
-        for (RelDataTypeField field: tableRow.getFieldList()) {
+        for (RelDataTypeField field : tableRow.getFieldList()) {
           if (shouldVisitColumn(schemaPath, tableName, field.getName())) {
             visitField(schemaPath, tableName, field);
           }
@@ -276,7 +282,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
     public boolean visitSchema(String schemaName, SchemaPlus schema) {
       AbstractSchema as = schema.unwrap(AbstractSchema.class);
       records.add(new Records.Schema(IS_CATALOG_NAME, schemaName, "<owner>",
-                                     as.getTypeName(), as.isMutable()));
+          as.getTypeName(), as.isMutable()));
       return false;
     }
   }
@@ -298,7 +304,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
       final AbstractSchema drillSchema = schema.unwrap(AbstractSchema.class);
       final List<Pair<String, TableType>> tableNamesAndTypes = drillSchema
           .getTableNamesAndTypes(optionManager.getOption(ExecConstants.ENABLE_BULK_LOAD_TABLE_LIST),
-              (int)optionManager.getOption(ExecConstants.BULK_LOAD_TABLE_LIST_BULK_SIZE));
+              (int) optionManager.getOption(ExecConstants.BULK_LOAD_TABLE_LIST_BULK_SIZE));
 
       for (Pair<String, TableType> tableNameAndType : tableNamesAndTypes) {
         final String tableName = tableNameAndType.getKey();
@@ -311,6 +317,11 @@ public abstract class InfoSchemaRecordGenerator<S> {
     }
 
     private void visitTableWithType(String schemaName, String tableName, TableType type) {
+      // https://issues.apache.org/jira/browse/DRILL-5295
+      if (type == null) {
+        return;
+      }
+
       Preconditions
           .checkNotNull(type, "Error. Type information for table %s.%s provided is null.", schemaName,
               tableName);
@@ -348,7 +359,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
     public boolean visitTable(String schemaName, String tableName, Table table) {
       if (table.getJdbcTableType() == TableType.VIEW) {
         records.add(new Records.View(IS_CATALOG_NAME, schemaName, tableName,
-                    ((DrillViewInfoProvider) table).getViewSql()));
+            ((DrillViewInfoProvider) table).getViewSql()));
       }
       return false;
     }
@@ -356,6 +367,7 @@ public abstract class InfoSchemaRecordGenerator<S> {
 
   public static class Columns extends InfoSchemaRecordGenerator<Records.Column> {
     List<Records.Column> records = Lists.newArrayList();
+
     public Columns(OptionManager optionManager) {
       super(optionManager);
     }

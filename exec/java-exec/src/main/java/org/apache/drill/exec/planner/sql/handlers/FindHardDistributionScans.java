@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- * <p/>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p/>
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,17 +21,18 @@ import org.apache.calcite.rel.RelNode;
 import org.apache.calcite.rel.RelShuttleImpl;
 import org.apache.calcite.rel.core.TableScan;
 import org.apache.drill.common.exceptions.DrillRuntimeException;
+import org.apache.drill.exec.physical.base.GroupScan;
 import org.apache.drill.exec.planner.fragment.DistributionAffinity;
 import org.apache.drill.exec.planner.logical.DrillTable;
 import org.apache.drill.exec.planner.logical.DrillTranslatableTable;
 
 import java.io.IOException;
 
-/**
- * Visitor to scan the RelNode tree and find if it contains any Scans that require hard distribution requirements.
- */
+/*
+  * Visitor to scan the RelNode tree and find if it contains any Scans that require hard distribution requirements.
+      */
 class FindHardDistributionScans extends RelShuttleImpl {
-  private boolean contains;
+  private boolean contains = false;
 
   /**
    * Can the given <code>relTree</code> be executed in single fragment mode? For now this returns false when the
@@ -50,17 +51,27 @@ class FindHardDistributionScans extends RelShuttleImpl {
   @Override
   public RelNode visit(TableScan scan) {
     DrillTable unwrap;
+    DrillTranslatableTable unwrap2;
+    GroupScan groupScan;
+
     unwrap = scan.getTable().unwrap(DrillTable.class);
     if (unwrap == null) {
-      unwrap = scan.getTable().unwrap(DrillTranslatableTable.class).getDrillTable();
-    }
-
-    try {
-      if (unwrap.getGroupScan().getDistributionAffinity() == DistributionAffinity.HARD) {
-        contains = true;
+      unwrap2 = scan.getTable().unwrap(DrillTranslatableTable.class);
+      if (unwrap2 != null) {
+        unwrap = unwrap2.getDrillTable();
       }
-    } catch (final IOException e) {
-      throw new DrillRuntimeException("Failed to get GroupScan from table.");
+    }
+    if (unwrap != null) {
+      try {
+        groupScan = unwrap.getGroupScan();
+        if (groupScan != null) {
+          if (groupScan.getDistributionAffinity() == DistributionAffinity.HARD) {
+            contains = true;
+          }
+        }
+      } catch (final IOException e) {
+        throw new DrillRuntimeException("Failed to get GroupScan from table.");
+      }
     }
     return scan;
   }

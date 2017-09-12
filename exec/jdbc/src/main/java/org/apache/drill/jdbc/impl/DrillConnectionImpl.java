@@ -93,8 +93,8 @@ class DrillConnectionImpl extends AvaticaConnection
     super(driver, factory, url, info);
 
     // Initialize transaction-related settings per Drill behavior.
-    super.setTransactionIsolation(TRANSACTION_NONE);
-    super.setAutoCommit(true);
+    super.setTransactionIsolation(TRANSACTION_READ_COMMITTED);
+    super.setAutoCommit(false);
     super.setReadOnly(false);
 
     this.config = new DrillConnectionConfig(info);
@@ -212,11 +212,12 @@ class DrillConnectionImpl extends AvaticaConnection
   @Override
   public void setAutoCommit( boolean autoCommit ) throws SQLException {
     throwIfClosed();
-    if ( ! autoCommit ) {
-      throw new SQLFeatureNotSupportedException(
-          "Can't turn off auto-committing; transactions are not supported.  "
-          + "(Drill is not transactional.)" );
-    }
+    // https://issues.apache.org/jira/browse/DRILL-2782
+    //    if ( ! autoCommit ) {
+    //      throw new SQLFeatureNotSupportedException(
+    //          "Can't turn off auto-committing; transactions are not supported.  "
+    //          + "(Drill is not transactional.)" );
+    //    }
     assert getAutoCommit() : "getAutoCommit() = " + getAutoCommit();
   }
 
@@ -230,7 +231,7 @@ class DrillConnectionImpl extends AvaticaConnection
       // (Currently not reachable.)
       throw new SQLFeatureNotSupportedException(
           "Connection.commit() is not supported.  (Drill is not transactional.)" );
-    }
+
   }
 
   @Override
