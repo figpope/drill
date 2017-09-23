@@ -64,7 +64,6 @@
           <artifactId>hbase</artifactId>
         </exclusion>
         <exclusion>
-  '
           <groupId>org.bouncycastle</groupId>
           <artifactId>bcpkix-jdk15on</artifactId>
         </exclusion>
