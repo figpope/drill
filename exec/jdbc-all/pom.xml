@@ -23,7 +23,7 @@
     <version>1.11.0</version>
   </parent>
 
-  <artifactId>drill-jdbc-all</artifactId>
+  <artifactId>drill-jdbc-all-celmatix</artifactId>
   <name>JDBC JAR with all dependencies</name>
 
   <dependencies>
@@ -64,6 +64,7 @@
           <artifactId>hbase</artifactId>
         </exclusion>
         <exclusion>
+  '
           <groupId>org.bouncycastle</groupId>
           <artifactId>bcpkix-jdk15on</artifactId>
         </exclusion>
@@ -469,38 +470,38 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-enforcer-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>enforce-jdbc-jar-compactness</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <phase>verify</phase>
-            <configuration>
-              <rules>
-                <requireFilesSize>
-                  <message>
+      <!--<plugin>-->
+        <!--<groupId>org.apache.maven.plugins</groupId>-->
+        <!--<artifactId>maven-enforcer-plugin</artifactId>-->
+        <!--<executions>-->
+          <!--<execution>-->
+            <!--<id>enforce-jdbc-jar-compactness</id>-->
+            <!--<goals>-->
+              <!--<goal>enforce</goal>-->
+            <!--</goals>-->
+            <!--<phase>verify</phase>-->
+            <!--<configuration>-->
+              <!--<rules>-->
+                <!--<requireFilesSize>-->
+                  <!--<message>-->
 
-                  The file drill-jdbc-all-${project.version}.jar is outside the expected size range.
+                  <!--The file drill-jdbc-all-${project.version}.jar is outside the expected size range.-->
 
-                  This is likely due to you adding new dependencies to a java-exec and not updating the excludes in this module. This is important as it minimizes the size of the dependency of Drill application users.
+                  <!--This is likely due to you adding new dependencies to a java-exec and not updating the excludes in this module. This is important as it minimizes the size of the dependency of Drill application users.-->
 
-                  </message>
-                  <maxsize>29000000</maxsize>
-                  <minsize>15000000</minsize>
-                  <files>
-                   <file>${project.build.directory}/drill-jdbc-all-${project.version}.jar</file>
-                  </files>
-                </requireFilesSize>
-              </rules>
-              <fail>true</fail>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+                  <!--</message>-->
+                  <!--<maxsize>29000000</maxsize>-->
+                  <!--<minsize>15000000</minsize>-->
+                  <!--<files>-->
+                   <!--<file>${project.build.directory}/drill-jdbc-all-${project.version}.jar</file>-->
+                  <!--</files>-->
+                <!--</requireFilesSize>-->
+              <!--</rules>-->
+              <!--<fail>true</fail>-->
+            <!--</configuration>-->
+          <!--</execution>-->
+        <!--</executions>-->
+      <!--</plugin>-->
 
     </plugins>
   </build>

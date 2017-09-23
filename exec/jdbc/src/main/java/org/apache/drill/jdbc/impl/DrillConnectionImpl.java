@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -75,7 +75,7 @@ import com.google.common.base.Throwables;
 // interface methods, but now newer versions would probably use Java 8's default
 // methods for compatibility.)
 class DrillConnectionImpl extends AvaticaConnection
-                          implements DrillConnection {
+    implements DrillConnection {
   private static final org.slf4j.Logger logger =
       org.slf4j.LoggerFactory.getLogger(DrillConnection.class);
 
@@ -108,7 +108,7 @@ class DrillConnectionImpl extends AvaticaConnection
         } catch (final ClassNotFoundException e) {
           throw new SQLNonTransientConnectionException(
               "Running Drill in embedded mode using Drill's jdbc-all JDBC"
-              + " driver Jar file alone is not supported.",  e);
+                  + " driver Jar file alone is not supported.", e);
         }
 
         final DrillConfig dConfig = DrillConfig.create(info);
@@ -139,7 +139,7 @@ class DrillConnectionImpl extends AvaticaConnection
         makeTmpSchemaLocationsUnique(bit.getContext().getStorage(), info);
 
         this.client = new DrillClient(dConfig, set.getCoordinator());
-      } else if(config.isDirect()) {
+      } else if (config.isDirect()) {
         final DrillConfig dConfig = DrillConfig.forClient();
         this.allocator = RootAllocatorFactory.newRoot(dConfig);
         this.client = new DrillClient(dConfig, true); // Get a direct connection
@@ -179,19 +179,20 @@ class DrillConnectionImpl extends AvaticaConnection
       throws SQLException {
     try {
       return super.prepareAndExecuteInternal(statement, sql, maxRowCount);
-    } catch(RuntimeException e) {
+    } catch (RuntimeException e) {
       Throwables.propagateIfInstanceOf(e.getCause(), SQLException.class);
       throw e;
     }
   }
+
   /**
    * Throws AlreadyClosedSqlException <i>iff</i> this Connection is closed.
    *
-   * @throws  AlreadyClosedSqlException  if Connection is closed
+   * @throws AlreadyClosedSqlException  if Connection is closed
    */
   private void throwIfClosed() throws AlreadyClosedSqlException {
-    if ( isClosed() ) {
-      throw new AlreadyClosedSqlException( "Connection is already closed." );
+    if (isClosed()) {
+      throw new AlreadyClosedSqlException("Connection is already closed.");
     }
   }
 
@@ -210,7 +211,7 @@ class DrillConnectionImpl extends AvaticaConnection
   }
 
   @Override
-  public void setAutoCommit( boolean autoCommit ) throws SQLException {
+  public void setAutoCommit(boolean autoCommit) throws SQLException {
     throwIfClosed();
     // https://issues.apache.org/jira/browse/DRILL-2782
     //    if ( ! autoCommit ) {
@@ -224,26 +225,24 @@ class DrillConnectionImpl extends AvaticaConnection
   @Override
   public void commit() throws SQLException {
     throwIfClosed();
-    if ( getAutoCommit() ) {
-      throw new JdbcApiSqlException( "Can't call commit() in auto-commit mode." );
+    if (getAutoCommit()) {
+      throw new JdbcApiSqlException("Can't call commit() in auto-commit mode.");
+    } else {
+//      // (Currently not reachable.)
+//      throw new SQLFeatureNotSupportedException(
+//          "Connection.commit() is not supported.  (Drill is not transactional.)");
     }
-    else {
-      // (Currently not reachable.)
-      throw new SQLFeatureNotSupportedException(
-          "Connection.commit() is not supported.  (Drill is not transactional.)" );
-
   }
 
   @Override
   public void rollback() throws SQLException {
     throwIfClosed();
-    if ( getAutoCommit()  ) {
-      throw new JdbcApiSqlException( "Can't call rollback() in auto-commit mode." );
-    }
-    else {
-      // (Currently not reachable.)
-      throw new SQLFeatureNotSupportedException(
-          "Connection.rollback() is not supported.  (Drill is not transactional.)" );
+    if (getAutoCommit()) {
+//      throw new JdbcApiSqlException("Can't call rollback() in auto-commit mode.");
+    } else {
+//      // (Currently not reachable.)
+//      throw new SQLFeatureNotSupportedException(
+//          "Connection.rollback() is not supported.  (Drill is not transactional.)");
     }
   }
 
@@ -252,14 +251,13 @@ class DrillConnectionImpl extends AvaticaConnection
   public boolean isClosed() {
     try {
       return super.isClosed();
-    }
-    catch ( SQLException e ) {
+    } catch (SQLException e) {
       // Currently can't happen, since AvaticaConnection.isClosed() never throws
       // SQLException.
       throw new DrillRuntimeException(
           "Unexpected exception from " + getClass().getSuperclass()
-          + ".isClosed(): " + e,
-          e );
+              + ".isClosed(): " + e,
+          e);
     }
   }
 
@@ -268,38 +266,43 @@ class DrillConnectionImpl extends AvaticaConnection
   public Savepoint setSavepoint() throws SQLException {
     throwIfClosed();
     throw new SQLFeatureNotSupportedException(
-        "Savepoints are not supported.  (Drill is not transactional.)" );
+        "Savepoints are not supported.  (Drill is not transactional.)");
   }
 
   @Override
   public Savepoint setSavepoint(String name) throws SQLException {
     throwIfClosed();
     throw new SQLFeatureNotSupportedException(
-        "Savepoints are not supported.  (Drill is not transactional.)" );
+        "Savepoints are not supported.  (Drill is not transactional.)");
   }
 
   @Override
-    public void rollback(Savepoint savepoint) throws SQLException {
+  public void rollback(Savepoint savepoint) throws SQLException {
     throwIfClosed();
     throw new SQLFeatureNotSupportedException(
-        "Savepoints are not supported.  (Drill is not transactional.)" );
+        "Savepoints are not supported.  (Drill is not transactional.)");
   }
 
   @Override
   public void releaseSavepoint(Savepoint savepoint) throws SQLException {
     throwIfClosed();
     throw new SQLFeatureNotSupportedException(
-        "Savepoints are not supported.  (Drill is not transactional.)" );
+        "Savepoints are not supported.  (Drill is not transactional.)");
   }
 
 
-  private String isolationValueToString( final int level ) {
-    switch ( level ) {
-      case TRANSACTION_NONE:             return "TRANSACTION_NONE";
-      case TRANSACTION_READ_UNCOMMITTED: return "TRANSACTION_READ_UNCOMMITTED";
-      case TRANSACTION_READ_COMMITTED:   return "TRANSACTION_READ_COMMITTED";
-      case TRANSACTION_REPEATABLE_READ:  return "TRANSACTION_REPEATABLE_READ";
-      case TRANSACTION_SERIALIZABLE:     return "TRANSACTION_SERIALIZABLE";
+  private String isolationValueToString(final int level) {
+    switch (level) {
+      case TRANSACTION_NONE:
+        return "TRANSACTION_NONE";
+      case TRANSACTION_READ_UNCOMMITTED:
+        return "TRANSACTION_READ_UNCOMMITTED";
+      case TRANSACTION_READ_COMMITTED:
+        return "TRANSACTION_READ_COMMITTED";
+      case TRANSACTION_REPEATABLE_READ:
+        return "TRANSACTION_REPEATABLE_READ";
+      case TRANSACTION_SERIALIZABLE:
+        return "TRANSACTION_SERIALIZABLE";
       default:
         return "<Unknown transaction isolation level value " + level + ">";
     }
@@ -308,7 +311,7 @@ class DrillConnectionImpl extends AvaticaConnection
   @Override
   public void setTransactionIsolation(int level) throws SQLException {
     throwIfClosed();
-    switch ( level ) {
+    switch (level) {
       case TRANSACTION_NONE:
         // No-op.  (Is already set in constructor, and we disallow changing it.)
         break;
@@ -316,45 +319,42 @@ class DrillConnectionImpl extends AvaticaConnection
       case TRANSACTION_READ_COMMITTED:
       case TRANSACTION_REPEATABLE_READ:
       case TRANSACTION_SERIALIZABLE:
-          throw new SQLFeatureNotSupportedException(
-              "Can't change transaction isolation level to Connection."
-              + isolationValueToString( level ) + " (from Connection."
-              + isolationValueToString( getTransactionIsolation() ) + ")."
-              + "  (Drill is not transactional.)" );
+        throw new SQLFeatureNotSupportedException(
+            "Can't change transaction isolation level to Connection."
+                + isolationValueToString(level) + " (from Connection."
+                + isolationValueToString(getTransactionIsolation()) + ")."
+                + "  (Drill is not transactional.)");
       default:
         // Invalid value (or new one unknown to code).
         throw new JdbcApiSqlException(
-            "Invalid transaction isolation level value " + level );
+            "Invalid transaction isolation level value " + level);
         //break;
     }
   }
 
   @Override
-  public void setNetworkTimeout( Executor executor, int milliseconds )
+  public void setNetworkTimeout(Executor executor, int milliseconds)
       throws AlreadyClosedSqlException,
-             JdbcApiSqlException,
-             SQLFeatureNotSupportedException {
+      JdbcApiSqlException,
+      SQLFeatureNotSupportedException {
     throwIfClosed();
-    if ( null == executor ) {
+    if (null == executor) {
       throw new InvalidParameterSqlException(
-          "Invalid (null) \"executor\" parameter to setNetworkTimeout(...)" );
-    }
-    else if ( milliseconds < 0 ) {
+          "Invalid (null) \"executor\" parameter to setNetworkTimeout(...)");
+    } else if (milliseconds < 0) {
       throw new InvalidParameterSqlException(
           "Invalid (negative) \"milliseconds\" parameter to"
-          + " setNetworkTimeout(...) (" + milliseconds + ")" );
-    }
-    else {
-      if ( 0 != milliseconds ) {
+              + " setNetworkTimeout(...) (" + milliseconds + ")");
+    } else {
+      if (0 != milliseconds) {
         throw new SQLFeatureNotSupportedException(
-            "Setting network timeout is not supported." );
+            "Setting network timeout is not supported.");
       }
     }
   }
 
   @Override
-  public int getNetworkTimeout() throws AlreadyClosedSqlException
-  {
+  public int getNetworkTimeout() throws AlreadyClosedSqlException {
     throwIfClosed();
     return 0;  // (No timeout.)
   }
@@ -367,8 +367,8 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     DrillStatementImpl statement =
         (DrillStatementImpl) super.createStatement(resultSetType,
-                                                   resultSetConcurrency,
-                                                   resultSetHoldability);
+            resultSetConcurrency,
+            resultSetHoldability);
     return statement;
   }
 
@@ -379,9 +379,9 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     DrillPreparedStatementImpl statement =
         (DrillPreparedStatementImpl) super.prepareStatement(sql,
-                                                            resultSetType,
-                                                            resultSetConcurrency,
-                                                            resultSetHoldability);
+            resultSetType,
+            resultSetConcurrency,
+            resultSetHoldability);
     return statement;
   }
 
@@ -418,8 +418,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareCall(sql);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -429,8 +428,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.nativeSQL(sql);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -518,30 +516,27 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareCall(sql, resultSetType, resultSetConcurrency);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
 
   @Override
-  public Map<String,Class<?>> getTypeMap() throws SQLException {
+  public Map<String, Class<?>> getTypeMap() throws SQLException {
     throwIfClosed();
     try {
       return super.getTypeMap();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
 
   @Override
-  public void setTypeMap(Map<String,Class<?>> map) throws SQLException {
+  public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
     throwIfClosed();
     try {
       super.setTypeMap(map);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -565,9 +560,8 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareCall(sql, resultSetType, resultSetConcurrency,
-                               resultSetHoldability);
-    }
-    catch (UnsupportedOperationException e) {
+          resultSetHoldability);
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -578,8 +572,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareStatement(sql, autoGeneratedKeys);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -590,8 +583,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareStatement(sql, columnIndexes);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -602,8 +594,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.prepareStatement(sql, columnNames);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -613,8 +604,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createClob();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -624,8 +614,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createBlob();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -635,8 +624,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createNClob();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -646,8 +634,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createSQLXML();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -657,8 +644,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.isValid(timeout);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -671,9 +657,8 @@ class DrillConnectionImpl extends AvaticaConnection
       throw new SQLClientInfoException(e.getMessage(), null, e);
     }
     try {
-      super.setClientInfo(name,  value);
-    }
-    catch (UnsupportedOperationException e) {
+      super.setClientInfo(name, value);
+    } catch (UnsupportedOperationException e) {
       SQLFeatureNotSupportedException intended =
           new SQLFeatureNotSupportedException(e.getMessage(), e);
       throw new SQLClientInfoException(e.getMessage(), null, intended);
@@ -689,8 +674,7 @@ class DrillConnectionImpl extends AvaticaConnection
     }
     try {
       super.setClientInfo(properties);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       SQLFeatureNotSupportedException intended =
           new SQLFeatureNotSupportedException(e.getMessage(), e);
       throw new SQLClientInfoException(e.getMessage(), null, intended);
@@ -702,8 +686,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.getClientInfo(name);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -713,8 +696,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.getClientInfo();
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -724,8 +706,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createArrayOf(typeName, elements);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -735,8 +716,7 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       return super.createStruct(typeName, attributes);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
@@ -764,12 +744,10 @@ class DrillConnectionImpl extends AvaticaConnection
     throwIfClosed();
     try {
       super.abort(executor);
-    }
-    catch (UnsupportedOperationException e) {
+    } catch (UnsupportedOperationException e) {
       throw new SQLFeatureNotSupportedException(e.getMessage(), e);
     }
   }
-
 
 
   // do not make public
@@ -789,7 +767,7 @@ class DrillConnectionImpl extends AvaticaConnection
 
     try {
       autoCloseable.close();
-    } catch(Exception e) {
+    } catch (Exception e) {
       logger.warn(message, e);
     }
   }
@@ -815,6 +793,7 @@ class DrillConnectionImpl extends AvaticaConnection
   // If we're not going to have tests themselves explicitly handle making names
   // unique, then at least move this logic into a test base class, and have it
   // go through DrillConnection.getClient().
+
   /**
    * Test only code to make JDBC tests run concurrently. If the property <i>drillJDBCUnitTests</i> is set to
    * <i>true</i> in connection properties:
@@ -829,7 +808,7 @@ class DrillConnectionImpl extends AvaticaConnection
         TestUtilities.updateDfsTestTmpSchemaLocation(pluginRegistry, tmpDirPath);
         TestUtilities.makeDfsTmpSchemaImmutable(pluginRegistry);
       }
-    } catch(Throwable e) {
+    } catch (Throwable e) {
       // Reason for catching Throwable is to capture NoSuchMethodError etc which depend on certain classed to be
       // present in classpath which may not be available when just using the standalone JDBC. This is unlikely to
       // happen, but just a safeguard to avoid failing user applications.
