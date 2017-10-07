@@ -234,6 +234,8 @@
             <exclude>**/*.cproject</exclude>
             <!-- TODO DRILL-4336: try to avoid the need to add this -->
             <exclude>dependency-reduced-pom.xml</exclude>
+            <exclude>docker/**/*</exclude>
+            <exclude>docker-compose.yml</exclude>
           </excludes>
         </configuration>
       </plugin>
