@@ -1,0 +1,18 @@
+version: '3'
+
+# TODO - generate this from the directory listing + args overrides
+# TODO - add real versioning
+# TODO - parallelize once https://github.com/moby/moby/issues/9656 closes
+services:
+  apache-drill:
+    build:
+      context: './docker/apache-drill'
+      args:
+        DRILL_VERSION: 1.11.0
+    image: 'localhost:5000/celmatix/apache-drill:1.11.0'
+  apache-drill-standalone:
+    build:
+      context: './docker/apache-drill-standalone'
+      args:
+        DRILL_VERSION: 1.11.0
+    image: 'localhost:5000/celmatix/apache-drill-standalone:1.11.0'
