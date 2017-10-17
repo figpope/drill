@@ -236,6 +236,7 @@
             <exclude>dependency-reduced-pom.xml</exclude>
             <exclude>docker/**/*</exclude>
             <exclude>docker-compose.yml</exclude>
+            <exclude>Makefile</exclude>
           </excludes>
         </configuration>
       </plugin>
