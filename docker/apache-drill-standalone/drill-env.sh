@@ -3,7 +3,7 @@ export DRILL_LOG_LEVEL=${DRILL_LOG_LEVEL:=info}
 
 env | grep -E "DRILL"
 
-drill_conf=/opt/apache-drill-$DRILL_VERSION/conf
+drill_conf=/opt/apache-drill/conf
 
 sed -i "s|DRILL_LOG_LEVEL|$DRILL_LOG_LEVEL|" $drill_conf/logback.xml
 

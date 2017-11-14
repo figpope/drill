@@ -5,14 +5,11 @@ version: '3'
 # TODO - parallelize once https://github.com/moby/moby/issues/9656 closes
 services:
   apache-drill:
-    build:
-      context: './docker/apache-drill'
-      args:
-        DRILL_VERSION: 1.11.0
+    build: './docker/apache-drill'
     image: 'localhost:5000/celmatix/apache-drill:1.11.0'
   apache-drill-standalone:
-    build:
-      context: './docker/apache-drill-standalone'
-      args:
-        DRILL_VERSION: 1.11.0
-    image: 'localhost:5000/celmatix/apache-drill-standalone:1.11.0'
+    build: './docker/apache-drill-standalone'
+    image: 'localhost:5000/celmatix/apache-drill:1.11.0-standalone'
+  apache-drill-base:
+    build: './docker/apache-drill-base'
+    image: 'localhost:5000/celmatix/apache-drill-base:1.11.0'

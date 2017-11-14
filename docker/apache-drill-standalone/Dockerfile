@@ -1,21 +1,7 @@
-FROM openjdk:8-jdk-alpine
-
+# TODO - add real versioning
+FROM localhost:5000/celmatix/apache-drill-base:1.11.0
 LABEL maintainer="figpope"
 
-ARG DRILL_VERSION
+COPY drill-env.sh /opt/apache-drill/conf/drill-env.sh
 
-ENV DRILL_VERSION=${DRILL_VERSION}
-
-ADD apache-drill-$DRILL_VERSION.tar.gz /opt/apache-drill-$DRILL_VERSION
-RUN apk --no-cache add bash
-
-COPY drivers/postgresql-42.1.4.jar /opt/apache-drill-$DRILL_VERSION/jars/3rdparty/postgresql-42.1.4.jar
-
-COPY drill-env.sh /opt/apache-drill-$DRILL_VERSION/conf/drill-env.sh
-COPY logback.xml /opt/apache-drill-$DRILL_VERSION/conf/logback.xml
-
-EXPOSE 8047 8048 31010 31011 31012 46655/udp
-
-ENV DRILL_BUFFER_SIZE=100
-
-CMD /opt/apache-drill-$DRILL_VERSION/bin/drill-embedded
+CMD /opt/apache-drill/bin/drill-embedded

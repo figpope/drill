@@ -1,11 +1,16 @@
 SHELL := /bin/bash
 
-.PHONY: build-docker
-build-docker:
+.PHONY: package
+package:
 	mvn clean install -Dmaven.test.skip=true
-	cp distribution/target/apache-drill-1.11.0.tar.gz docker/apache-drill/apache-drill-1.11.0.tar.gz
-	cp distribution/target/apache-drill-1.11.0.tar.gz docker/apache-drill-standalone/apache-drill-1.11.0.tar.gz
-	docker-compose build
+
+# TODO - add versioning for real
+.PHONY: build-docker
+build-docker: package
+	rm -rf docker/apache-drill-base/apache-drill.tar.gz
+	tar -zcvf docker/apache-drill-base/apache-drill.tar.gz -C distribution/target/apache-drill-1.11.0/apache-drill-1.11.0 .
+	docker-compose build apache-drill-base
+	docker-compose build apache-drill-standalone apache-drill
 
 .PHONY: deploy-docker
 deploy-docker: build-docker
